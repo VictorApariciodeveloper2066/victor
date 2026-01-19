@@ -14,7 +14,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         function setActionForForm(action) {
-            const form = document.getElementById('register-form');
+            const form = document.getElementById('register_form');
             if (action === 'register') {
                 form.action = "{{ url_for('front.register_page') }}";
                 form.method = "post";
@@ -92,8 +92,8 @@
                 <div
                     class="bg-white dark:bg-surface-dark/50 rounded-xl border border-slate-200 dark:border-border-dark p-6 sm:p-8 shadow-sm">
                     <!-- Form Section: register form and fields -->
-                    <form class="flex flex-col gap-5" id="register_form" action="{{ url_for('front.register_page') }}"
-                        method="post" onclick="setActionForm('login')">
+                    <form class="flex flex-col gap-5" id="register_form">
+                        <div id="register-error" class="mb-4 rounded-lg px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200" style="display:none;"></div>
                         <div class="flex flex-col gap-2">
                             <label class="text-slate-900 dark:text-white text-sm font-medium leading-normal">Nombre
                                 completo</label>
@@ -167,8 +167,7 @@
                                     href="#">Política de privacidad</a>
                             </label>
                         </div>
-                        <button
-                            class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary hover:bg-emerald-400 text-[#122118] text-base font-bold leading-normal tracking-[0.015em] transition-all shadow-lg shadow-primary/20">
+                        <button id="register-submit" type="button" class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary hover:bg-emerald-400 text-[#122118] text-base font-bold leading-normal tracking-[0.015em] transition-all shadow-lg shadow-primary/20">
                             <span class="truncate">Crear cuenta</span>
                         </button>
                         <div class="relative flex py-1 items-center">
@@ -200,6 +199,52 @@
             </div>
         </main>
     </div>
+                <script>
+                    (function(){
+                        const form = document.getElementById('register_form');
+                        const errorBox = document.getElementById('register-error');
+                        if (!form) return;
+                        const btn = document.getElementById('register-submit');
+                        // Prevent native form submission (enter key or other submits)
+                        form.addEventListener('submit', function(e){
+                            e.preventDefault();
+                        });
+
+                        btn.addEventListener('click', async function(e){
+                            e.preventDefault();
+                            errorBox.style.display = 'none';
+                            const username = (form.querySelector('input[name="username"]') || {}).value || '';
+                            const password = (form.querySelector('input[name="password"]') || {}).value || '';
+                            const password_confirm = (form.querySelector('input[name="password_confirm"]') || {}).value || '';
+                            const email = (form.querySelector('input[name="email"]') || {}).value || '';
+                            if (password !== password_confirm) {
+                                errorBox.textContent = 'Las contraseñas no coinciden';
+                                errorBox.style.display = 'block';
+                                return;
+                            }
+                            try {
+                                const res = await fetch("{{ url_for('auth.register') }}", {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ username: username, password: password, email: email }),
+                                    credentials: 'same-origin'
+                                });
+                                const data = await res.json().catch(()=>({}));
+                                if (res.ok) {
+                                    window.location.href = "{{ url_for('front.predashboard') }}";
+                                } else {
+                                    const msg = data.error || data.message || 'Error en el registro';
+                                    errorBox.textContent = msg;
+                                    errorBox.style.display = 'block';
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                errorBox.textContent = 'Error de red. Intenta nuevamente.';
+                                errorBox.style.display = 'block';
+                            }
+                        });
+                    })();
+                </script>
 </body>
 
 </html>

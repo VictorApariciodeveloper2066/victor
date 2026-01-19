@@ -14,7 +14,7 @@ def create_app():
     app = Flask(
         __name__,
         template_folder=str(APP_DIR / 'frontend' / 'templates'),
-        static_folder=str(APP_DIR / 'frontend' / 'static'),
+        static_folder=str(APP_DIR / 'frontend' / 'static' / 'assets'),
         static_url_path='/static'
     )
 
